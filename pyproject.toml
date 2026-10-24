@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "digestpack"
+version = "0.0.1"
+description = "Zero-Pip AST code skeletonizer, PageRank repo-mapper & context packager for frontier LLM audits (built to curb AI token bleed)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Echo Scion", email = "echoscion@users.noreply.github.com"}
+]
+keywords = ["llm", "context-packager", "ast", "code-skeletonizer", "token-optimizer", "repomix", "gitingest", "gemini", "antigravity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Quality Assurance"
+]
+dependencies = []
+
+[project.scripts]
+digestpack = "digestpack.__main__:main"

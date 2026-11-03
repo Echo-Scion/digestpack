@@ -1,12 +1,11 @@
 <div align="center">
 
-# 📦 Digestpack
+# 📦 Digestpack: Squeeze. Distill. Context.
 
-### Zero-Pip Markdown Codebase Packager, Polyglot AST Skeletonizer & Security Sanitizer
+### Squeeze large codebases, distill the critical signals, and deliver zero-waste context.
 
 <p align="center">
-  <b>AI agent tool to pack codebases into 10 structured Markdown bundles (<code>.md</code>), AST skeletons, and security digests.</b>
-
+  A zero-pip AST scanner and sanitizer that ingests multi-language repositories, strips secrets and boilerplate, and compiles them into 10 token-optimized Markdown audit bundles with differential skeletons for LLM context windows.
 </p>
 
 <p align="center">

@@ -379,6 +379,72 @@ class SampleService:
             self.assertTrue(os.path.isdir(hybrid_dir))
             self.assertTrue(os.path.isdir(full_dir))
 
+    def test_pack_repo_zip_clean_export(self):
+        """Verifies pack_repo_zip creates clean GitHub-push mirror zip respecting .gitignore."""
+        import zipfile
+        from digestpack.packer import ContextPacker, pack_repo_zip
+
+        with tempfile.TemporaryDirectory() as td:
+            os.makedirs(os.path.join(td, "src"))
+            os.makedirs(os.path.join(td, "node_modules", "pkg"))
+            os.makedirs(os.path.join(td, ".git"))
+            os.makedirs(os.path.join(td, ".orion", "cache"))
+
+            with open(os.path.join(td, ".gitignore"), "w", encoding="utf-8") as f:
+                f.write("node_modules/\n*.secret\n")
+            with open(os.path.join(td, "README.md"), "w", encoding="utf-8") as f:
+                f.write("# Sample Project")
+            with open(os.path.join(td, "package.json"), "w", encoding="utf-8") as f:
+                f.write('{"name": "test"}')
+            with open(os.path.join(td, "src", "index.ts"), "w", encoding="utf-8") as f:
+                f.write("console.log('hi');")
+            with open(os.path.join(td, "node_modules", "pkg", "index.js"), "w", encoding="utf-8") as f:
+                f.write("module.exports = {};")
+            with open(os.path.join(td, "key.secret"), "w", encoding="utf-8") as f:
+                f.write("super_secret_token")
+            with open(os.path.join(td, ".DS_Store"), "w", encoding="utf-8") as f:
+                f.write("junk")
+
+            out_zip = os.path.join(td, "github_export.zip")
+            res = pack_repo_zip(td, out_zip)
+
+            self.assertEqual(res["output_path"], os.path.abspath(out_zip))
+            self.assertTrue(os.path.isfile(out_zip))
+
+            with zipfile.ZipFile(out_zip, "r") as zf:
+                names = sorted(zf.namelist())
+                self.assertIn(".gitignore", names)
+                self.assertIn("README.md", names)
+                self.assertIn("package.json", names)
+                self.assertIn("src/index.ts", names)
+
+                # Ignored items must be excluded
+                self.assertNotIn("node_modules/pkg/index.js", names)
+                self.assertNotIn("key.secret", names)
+                self.assertNotIn(".DS_Store", names)
+                self.assertNotIn("github_export.zip", names)
+
+    def test_pack_zip_prefix_and_self_exclusion(self):
+        """Verifies zip entry prefixing and self-exclusion when output resides in repo root."""
+        import zipfile
+        from digestpack.packer import ContextPacker
+
+        with tempfile.TemporaryDirectory() as td:
+            with open(os.path.join(td, "file1.txt"), "w", encoding="utf-8") as f:
+                f.write("content 1")
+            with open(os.path.join(td, "file2.txt"), "w", encoding="utf-8") as f:
+                f.write("content 2")
+
+            packer = ContextPacker(td)
+            out_zip = os.path.join(td, "archive.zip")
+            res = packer.pack_zip(out_zip, prefix="my-app")
+
+            self.assertEqual(res["file_count"], 2)
+            with zipfile.ZipFile(out_zip, "r") as zf:
+                names = sorted(zf.namelist())
+                self.assertEqual(names, ["my-app/file1.txt", "my-app/file2.txt"])
+                self.assertNotIn("my-app/archive.zip", names)
+
 
 if __name__ == "__main__":
     unittest.main()

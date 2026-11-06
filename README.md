@@ -84,7 +84,8 @@ Digestpack combines three developer tools into a single, zero-dependency CLI:
 * **Prompt-in-Data Shield**: Neutralizes prompt tags and escapes `<artifact>` delimiters across all lines (including code fences) to prevent context hijacking.
 * **Active Code Curation**: Filters downstream scaffolding templates and boilerplate files by default (opt back in with `--include-boilerplate`).
 * **Git & Remote Ingestion**: Packs uncommitted working trees (`digestpack diff`), staged PR changes (`digestpack pr`), or remote GitHub repositories directly.
-* **Multi-Dialect Output**: Supports clean Markdown, XML, Claude-XML, and Digest formats (`--format`).
+* **Clean GitHub-Push ZIP Archive**: Generates clean repository ZIP archives (`digestpack zip` or `digestpack --zip`) mirroring what would be pushed to GitHub, strictly respecting `.gitignore` and excluding `.git/`, `.orion/`, caches, and OS junk.
+* **Multi-Dialect Output**: Supports clean Markdown, XML, Claude-XML, ZIP, and Digest formats (`--format`).
 
 ### 2. 🔍 The Scanner (`scanner.py`)
 * **Polyglot AST Skeletonizer**: Collapses function bodies while preserving signatures, types, and docstrings across 10+ languages (cuts token weight **60%–85%**).
@@ -192,6 +193,7 @@ digestpack full --include-boilerplate
 | `digestpack stats` | 🔍 Scanner | Generates a token density matrix breakdown by file extension and directory weight. |
 | `digestpack pr` | 📦 Packer | Extracts staged Git changes and packages a targeted diff digest for PR code reviews. |
 | `digestpack diff` | 📦 Packer | Packs all uncommitted working tree modifications. |
+| `digestpack zip` | 📦 Packer | Exports clean GitHub-ready repository ZIP mirroring push state (respects `.gitignore`, excludes `.git/` and caches). Supports `--out`, `--prefix`, `--tracked-only`. |
 | `digestpack <github-url>` | 🌐 Ingestion | Clones and skeletonizes a remote GitHub repository directly into a Claude/Gemini-ready XML bundle. |
 
 ---

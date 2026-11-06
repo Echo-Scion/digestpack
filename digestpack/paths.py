@@ -6,8 +6,11 @@ Provides canonical path discovery and normalization across the workspace, .agent
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Union, List, Set, Tuple, Optional, Callable, Dict
+
+WINDOWLESS_FLAGS: int = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) if sys.platform == "win32" else 0
 
 
 DEFAULT_IGNORE_DIRS: Set[str] = {
@@ -242,7 +245,7 @@ def get_workspace_files(
     if tracked_only:
         try:
             cmd = ["git", "ls-files"]
-            flags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) if sys.platform == "win32" else 0
+            flags = WINDOWLESS_FLAGS
             proc = subprocess.run(
                 cmd,
                 cwd=ws_str,

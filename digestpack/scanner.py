@@ -142,7 +142,7 @@ def dump_frontmatter(metadata: Dict[str, Any], body: str) -> str:
 def _should_traverse_dir(d: str, ignore_dirs: Set[str], include_agents_runtime: bool = False) -> bool:
     """Unified directory traversal predicate across all scanner commands."""
     try:
-        from core.paths import should_traverse_dir, DEFAULT_IGNORE_DIRS
+        from .paths import should_traverse_dir, DEFAULT_IGNORE_DIRS
         if d in DEFAULT_IGNORE_DIRS or d.lower() in DEFAULT_IGNORE_DIRS:
             return False
     except ImportError:
@@ -176,7 +176,7 @@ def get_audit_targets(directory: str, extensions: List[str], exclude_dirs: List[
 def cmd_targets(args: argparse.Namespace) -> None:
     target_dir = getattr(args, 'dir', '.')
     try:
-        from core.paths import DEFAULT_IGNORE_DIRS
+        from .paths import DEFAULT_IGNORE_DIRS
         default_excludes = list(DEFAULT_IGNORE_DIRS)
     except ImportError:
         default_excludes = ["node_modules", "build", "dist", "coverage", ".git", "ios", "android", ".gemini", "__pycache__", "scratch", ".scratch", ".worktrees", ".orion"]
@@ -1474,7 +1474,7 @@ def extract_file_symbols(file_path: str, conn: Optional[Any] = None) -> Tuple[Di
         mtime_ns, size_b = st.st_mtime_ns, st.st_size
         if active_conn is None:
             try:
-                from core.paths import get_persistence_db_path
+                from .paths import get_persistence_db_path
                 cache_db_path = str(get_persistence_db_path())
             except ImportError:
                 orion_dir = os.path.join(os.getcwd(), ".orion")
@@ -1688,7 +1688,7 @@ def extract_file_symbols(file_path: str, conn: Optional[Any] = None) -> Tuple[Di
         if write_conn is None:
             if not cache_db_path:
                 try:
-                    from core.paths import get_persistence_db_path
+                    from .paths import get_persistence_db_path
                     cache_db_path = str(get_persistence_db_path())
                 except ImportError:
                     pass
@@ -1761,7 +1761,7 @@ def extract_symbols(root_dir: str, max_files: int = 500) -> Dict[str, List[Dict[
     shared_conn = None
     try:
         from core.db import connect_sqlite
-        from core.paths import get_persistence_db_path
+        from .paths import get_persistence_db_path
         db_p = str(get_persistence_db_path())
         if os.path.exists(db_p):
             shared_conn = connect_sqlite(db_p, read_only=True)
@@ -2116,7 +2116,7 @@ def build_repo_map(
     shared_conn = None
     try:
         from core.db import connect_sqlite
-        from core.paths import get_persistence_db_path
+        from .paths import get_persistence_db_path
         db_p = str(get_persistence_db_path())
         if os.path.exists(db_p):
             shared_conn = connect_sqlite(db_p, read_only=True)
@@ -2505,6 +2505,12 @@ def _resolve_local_1hop_closure(raw_paths: List[str], root_dir: str = ".") -> Se
                         os.path.join(abs_root, "src"),
                         os.path.join(abs_root, "lib"),
                     ]
+                    try:
+                        for entry in os.scandir(abs_root):
+                            if entry.is_dir() and not entry.name.startswith(".") and entry.name not in ignore_dirs:
+                                search_bases.append(entry.path)
+                    except OSError:
+                        pass
                     for s_base in search_bases:
                         cand_file = os.path.join(s_base, rel_mod + ".py")
                         cand_pkg = os.path.join(s_base, rel_mod, "__init__.py")

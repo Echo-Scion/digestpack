@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Echo-Scion/digestpack/releases"><img src="https://img.shields.io/badge/version-v0.0.1-blue.svg?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/Echo-Scion/digestpack/releases"><img src="https://img.shields.io/badge/version-v0.1.0-blue.svg?style=flat-square" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="License"></a>
   <a href="#-three-anchored-engines"><img src="https://img.shields.io/badge/core-Python%203.10%2B%20Stdlib-brightgreen.svg?style=flat-square" alt="Core"></a>
   <a href="#-zero-pip-mandate"><img src="https://img.shields.io/badge/dependencies-Zero%20Pip-critical.svg?style=flat-square" alt="Zero-Pip"></a>
@@ -36,9 +36,9 @@ pip install .   # or run directly: python -m digestpack audit
 ---
 
 
-## 🔗 Portable Brainvibing (`.agents`) Synergy
+## 🔗 OrionCortex (`.agents`) Synergy
 
-Digestpack serves as the mechanical packaging backbone of the [Portable Brainvibing (`.agents`)](https://github.com/Echo-Scion/portable-brainvibing) ecosystem:
+Digestpack serves as the mechanical packaging backbone of the [OrionCortex (`.agents`)](https://github.com/Echo-Scion/orioncortex) ecosystem:
 * **Native Orion Pack**: Inside any `.agents`-enabled repository, Digestpack powers `python .agents/scripts/orion.py pack`.
 * **Project DNA Contract**: Ingests `.agents/.dna.json` to cluster source files across the 5-Tier Canonical Strata (`contracts`, `domain`, `services`, `state`, `presentation`).
 * **Tier 0 Pillar Locking**: Locks context pillars (`context/00_Strategy/BLUEPRINT.md`, etc.) and root manifests into Bundle 01.
@@ -128,7 +128,7 @@ Digestpack is built on a two-tier execution model that balances **zero-dependenc
 
 ## 🚀 Quickstart for AI Coding Agents
 
-Digestpack operates with zero external pip packages (pure Python 3.10+ standard library). To run standalone without [Portable Brainvibing (`.agents`)](https://github.com/Echo-Scion/portable-brainvibing), AI coding agents or developers can clone and execute directly:
+Digestpack operates with zero external pip packages (pure Python 3.10+ standard library). To run standalone without [OrionCortex (`.agents`)](https://github.com/Echo-Scion/orioncortex), AI coding agents or developers can clone and execute directly:
 
 ```bash
 # Clone the repository

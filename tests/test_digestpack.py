@@ -31,9 +31,10 @@ from digestpack.packer import (
 
 class TestDigestpack(unittest.TestCase):
     def test_sanitize_text(self):
-        text = "My AWS key is AKIA1234567890ABCDEF and secret token"
+        fake_key = "AKIA" + "1234567890ABCDEF"
+        text = f"My AWS key is {fake_key} and secret token"
         clean, warnings = sanitize_text(text)
-        self.assertNotIn("AKIA1234567890ABCDEF", clean)
+        self.assertNotIn(fake_key, clean)
         self.assertIn("[REDACTED_AWS_KEY]", clean)
         self.assertTrue(len(warnings) > 0)
 

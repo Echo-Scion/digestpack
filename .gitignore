@@ -30,3 +30,12 @@ ENV/
 .orion/
 .scratch/
 bundles/
+
+# Agent Habitat Files (Local Development Environment)
+.agents/
+.gemini/
+context/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.worktreeinclude

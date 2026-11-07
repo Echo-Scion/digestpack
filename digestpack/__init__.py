@@ -36,7 +36,7 @@ from .dna import (
     CANONICAL_DEPENDENCY_LAWS,
 )
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __all__ = [
     "skeletonize_code",
     "skeletonize_python",

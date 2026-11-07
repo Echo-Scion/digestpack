@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digestpack"
-version = "0.0.1"
+version = "0.1.0"
 description = "Zero-Pip AST code skeletonizer, PageRank repo-mapper & context packager for frontier LLM audits (built to curb AI token bleed)."
 readme = "README.md"
 requires-python = ">=3.10"

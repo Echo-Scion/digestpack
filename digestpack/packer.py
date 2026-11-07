@@ -144,6 +144,18 @@ except ImportError:
             get_workspace_files,
         )
 
+try:
+    from core.capabilities import validate_remote_api_url
+except ImportError:
+    try:
+        from .capabilities import validate_remote_api_url
+    except (ImportError, ValueError):
+        try:
+            from capabilities import validate_remote_api_url
+        except ImportError:
+            def validate_remote_api_url(url: str) -> str:
+                return url
+
 DEFAULT_TEXT_EXTENSIONS = {
     ".py", ".dart", ".kt", ".kts", ".java", ".rs", ".ts", ".tsx", ".js", ".jsx",
     ".mjs", ".cjs", ".json", ".jsonl", ".yaml", ".yml", ".md", ".mdc", ".txt",
@@ -303,13 +315,22 @@ def is_foundation_root(root_dir: str) -> bool:
     Returns False if ANY host application indicator (pubspec, package.json, Cargo.toml, lib/, src/, etc.) is present.
     """
     abs_root = os.path.abspath(root_dir)
+    if os.path.basename(abs_root) == "_foundation":
+        return True
     if os.path.basename(abs_root) == ".agents":
         return True
+
+    cur = abs_root
+    while cur and os.path.dirname(cur) != cur:
+        if os.path.basename(cur) == ".agents":
+            parent = os.path.dirname(cur)
+            if os.path.basename(parent) == "_foundation":
+                return True
+        cur = os.path.dirname(cur)
 
     app_indicators = [
         "package.json", "pubspec.yaml", "Cargo.toml", "go.mod", "tsconfig.json",
         "pom.xml", "build.gradle", "build.gradle.kts", "CMakeLists.txt",
-        "src", "lib", "app", "apps", "services", "packages", "crates", "ios", "android"
     ]
     for ind in app_indicators:
         if os.path.exists(os.path.join(abs_root, ind)):
@@ -1635,7 +1656,7 @@ def compute_file_gravity_and_cluster(rel_path: str, dna: Optional[ProjectDNA] = 
 
     # 4: Core Engine / Scripts / State Machine
     if (
-        norm_lower.endswith(("reflexion.py", "state_machine.py", "memory.py", "orion_graph.py"))
+        norm_lower.endswith(("pulsar.py", "reflexion.py", "state_machine.py", "memory.py", "orion_graph.py"))
         or any(seg in {"engine", "reflexion", "state_machine"} for seg in norm_lower.split("/"))
     ):
         return (4, "core_engine", "Core Engine & Coordination")
@@ -1908,12 +1929,13 @@ def _build_llm_architect_prompt(root_dir: str, buckets: Dict[str, ModuleBucket],
 
 def _call_cloud_llm_for_taxonomy(prompt: str, timeout: float = 20.0) -> Optional[Tuple[Dict[str, Any], str]]:
     """
-    Optional Zero-Pip Cloud LLM call if GEMINI_API_KEY or OPENAI_API_KEY is available in environment.
-    Uses pure Python urllib.request.
+    Optional Zero-Pip Cloud LLM call if GEMINI_API_KEY, OPENAI_API_KEY, or other supported
+    provider keys are available in environment.
+    Uses pure Python urllib.request with strict HTTPS and header authentication.
     """
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if gemini_key:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -1925,7 +1947,10 @@ def _call_cloud_llm_for_taxonomy(prompt: str, timeout: float = 20.0) -> Optional
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": gemini_key,
+                },
                 method="POST",
             )
             with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -1935,10 +1960,49 @@ def _call_cloud_llm_for_taxonomy(prompt: str, timeout: float = 20.0) -> Optional
         except Exception as _e:
             _log_telemetry(_e, "packer.py:_call_cloud_llm_for_taxonomy:gemini")
 
-    openai_key = os.environ.get("OPENAI_API_KEY")
-    if openai_key:
-        url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/") + "/chat/completions"
-        model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    api_key = (
+        os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("ORION_API_KEY")
+        or os.environ.get("ORION_API_KEY_COUNCIL")
+        or os.environ.get("CHUTES_API_KEY")
+        or os.environ.get("OPENROUTER_API_KEY")
+        or os.environ.get("GROQ_API_KEY")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or os.environ.get("CEREBRAS_API_KEY")
+        or os.environ.get("TOGETHER_API_KEY")
+        or os.environ.get("FIREWORKS_API_KEY")
+    )
+    raw_base_url = (
+        os.environ.get("OPENAI_BASE_URL")
+        or os.environ.get("ORION_API_URL")
+        or os.environ.get("ORION_API_URL_COUNCIL")
+        or os.environ.get("CHUTES_API_URL")
+        or os.environ.get("OPENROUTER_API_URL")
+        or os.environ.get("GROQ_API_URL")
+        or "https://api.openai.com/v1"
+    )
+    if api_key or "127.0.0.1" in raw_base_url or "localhost" in raw_base_url:
+        if not validate_remote_api_url(raw_base_url):
+            _log_telemetry(None, f"packer.py:_call_cloud_llm_for_taxonomy:insecure_url:{raw_base_url}")
+            return None
+
+        url = raw_base_url.rstrip("/") + "/chat/completions"
+        model = (
+            os.environ.get("OPENAI_MODEL")
+            or os.environ.get("ORION_API_MODEL_COUNCIL")
+            or os.environ.get("ORION_API_MODEL")
+            or os.environ.get("CHUTES_API_MODEL")
+            or os.environ.get("OPENROUTER_API_MODEL")
+            or os.environ.get("GROQ_API_MODEL")
+            or "gpt-4o-mini"
+        )
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+            if "openrouter.ai" in url:
+                headers["HTTP-Referer"] = "https://github.com/orion-cortex"
+                headers["X-Title"] = "OrionCortex"
+
         payload = {
             "model": model,
             "messages": [
@@ -1952,18 +2016,15 @@ def _call_cloud_llm_for_taxonomy(prompt: str, timeout: float = 20.0) -> Optional
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {openai_key}",
-                },
+                headers=headers,
                 method="POST",
             )
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 text = data["choices"][0]["message"]["content"]
-                return json.loads(text.strip()), "openai_cloud_api"
+                return json.loads(text.strip()), "cloud_api"
         except Exception as _e:
-            _log_telemetry(_e, "packer.py:_call_cloud_llm_for_taxonomy:openai")
+            _log_telemetry(_e, "packer.py:_call_cloud_llm_for_taxonomy:cloud_api")
 
     return None
 
